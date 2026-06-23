@@ -6,15 +6,29 @@ formats and ships with a web UI.
 
 ## Supported formats
 
-| Key        | Format                              | Notes |
-|------------|-------------------------------------|-------|
-| `ieee`     | IEEE (IEEEtran, conference)         | `IEEEtran.cls` is bundled into the output, so it compiles anywhere. |
-| `acm`      | ACM (acmart, sigconf)               | Needs the `acmart` class (TeX Live: `texlive-publishers`). |
-| `lncs`     | Springer LNCS (llncs)               | Needs the `llncs` class (Springer LNCS bundle). |
-| `elsevier` | Elsevier (elsarticle, preprint)     | Needs the `elsarticle` class (TeX Live: `texlive-publishers`). |
-| `article`  | Plain LaTeX `article`               | Compiles with any standard LaTeX install. |
+| Key        | Format                              | Bundled class files |
+|------------|-------------------------------------|---------------------|
+| `ieee`     | IEEE (IEEEtran, conference)         | `IEEEtran.cls` |
+| `acm`      | ACM (acmart, sigconf)               | `acmart.cls`, `ACM-Reference-Format.bst` |
+| `lncs`     | Springer LNCS (llncs)               | `llncs.cls`, `splncs04.bst` |
+| `elsevier` | Elsevier (elsarticle, preprint)     | `elsarticle.cls`, `elsarticle-*.bst` |
+| `article`  | Plain LaTeX `article`               | none (standard class) |
+
+Every generated project includes the class (`.cls`) and bibliography-style
+(`.bst`) files it needs, copied in next to `main.tex`, so you don't have to
+install any publisher class separately — just a LaTeX engine. The master copies
+live in [`docx2latex/texclasses/<format>/`](docx2latex/texclasses) and were taken
+from TeX Live (CTAN `tlnet`).
 
 ## Install
+
+With [uv](https://docs.astral.sh/uv/) (recommended):
+
+```bash
+uv sync
+```
+
+Or with pip:
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
@@ -24,7 +38,7 @@ pip install -r requirements.txt
 ## Web UI
 
 ```bash
-streamlit run app.py
+uv run streamlit run app.py        # or: streamlit run app.py
 ```
 
 Upload a `.docx`, pick a target format, optionally tick **Compile to PDF**
@@ -34,13 +48,26 @@ Upload a `.docx`, pick a target format, optionally tick **Compile to PDF**
 ## Command line
 
 ```bash
-# New multi-format CLI
-python -m docx2latex.cli input.docx -o out_dir -f acm
-python -m docx2latex.cli input.docx -o out_dir -f ieee --compile
+# Multi-format CLI (console script installed by uv sync)
+uv run docx2latex input.docx -o out_dir -f acm
+uv run docx2latex input.docx -o out_dir -f ieee --compile
+uv run docx2latex --help           # lists all formats
 
 # Backwards-compatible IEEE-only entry point
-python docx_to_ieee.py input.docx -o out_dir [--compile]
+uv run python docx_to_ieee.py input.docx -o out_dir [--compile]
 ```
+
+## Compiling the generated project
+
+Because each project ships with its own `.cls`/`.bst` files, you only need a
+LaTeX engine — no separate publisher-class install:
+
+- **Locally:** run `latexmk -pdf main.tex` (or `pdflatex main.tex`) in the
+  output folder, or pass `--compile` / tick *Compile to PDF* in the UI. A
+  reasonably complete TeX distribution (TeX Live, MacTeX, MiKTeX) is assumed —
+  the bundled classes still rely on standard packages that ship with those.
+- **Overleaf:** upload the downloaded `.zip`, set `main.tex` as the main
+  document, and compile. The bundled class files are picked up automatically.
 
 ## Library
 
@@ -65,7 +92,8 @@ DOCX ──parser.py──▶ Manuscript (IR) ──templates.py──▶ main.t
 - **`templates.py`** holds one `Template` per format. A template only defines
   the bits that differ between formats: the document class, packages, and the
   title/author/abstract/keyword blocks. Add a new format by subclassing
-  `Template` and adding it to `REGISTRY`.
+  `Template`, adding it to `REGISTRY`, and dropping its `.cls`/`.bst` files in
+  `docx2latex/texclasses/<key>/`.
 - **`converter.py`** ties it together: it parses once, renders the shared body
   (headings, paragraphs, tables, figures, bibliography), writes `main.tex` plus
   any exported images, copies bundled class files, and optionally compiles.

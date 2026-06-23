@@ -96,17 +96,35 @@ def render_latex(ms: Manuscript, template: Template) -> str:
     return "\n".join(lines).replace("\n\n\n", "\n\n")
 
 
-def _copy_bundled_class(template: Template, out_dir: Path) -> Optional[Path]:
-    if not template.bundled_class:
-        return None
-    name = template.bundled_class
-    candidates = [Path(__file__).resolve().parent.parent / name, Path.cwd() / name]
-    for src in candidates:
-        if src.exists():
-            dst = out_dir / name
-            shutil.copy2(src, dst)
-            return dst
+def _texclasses_dir(fmt: str) -> Optional[Path]:
+    """Locate the bundled class/bst files for ``fmt`` (texclasses/<fmt>/)."""
+    here = Path(__file__).resolve().parent
+    candidates = [
+        here / "texclasses" / fmt,            # shipped inside the package
+        here.parent / "texclasses" / fmt,     # repo layout (dev checkout)
+        Path.cwd() / "texclasses" / fmt,
+    ]
+    for d in candidates:
+        if d.is_dir():
+            return d
     return None
+
+
+def _copy_bundled_classes(template: Template, out_dir: Path) -> List[Path]:
+    """Copy the bundled .cls/.bst files for this format next to main.tex so the
+    project compiles standalone, even if the class is not installed system-wide."""
+    if not template.bundle_classes:
+        return []
+    src_dir = _texclasses_dir(template.key)
+    if src_dir is None:
+        return []
+    copied = []
+    for src in sorted(src_dir.iterdir()):
+        if src.is_file() and not src.name.startswith("."):
+            dst = out_dir / src.name
+            shutil.copy2(src, dst)
+            copied.append(dst)
+    return copied
 
 
 def compile_latex(tex_path: Path) -> None:
@@ -150,7 +168,7 @@ def convert(
     tex_path = out_dir / "main.tex"
     tex_path.write_text(tex, encoding="utf-8")
 
-    _copy_bundled_class(template, out_dir)
+    _copy_bundled_classes(template, out_dir)
 
     if compile_pdf:
         compile_latex(tex_path)

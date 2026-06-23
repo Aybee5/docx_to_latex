@@ -10,7 +10,7 @@ Add a new format by subclassing ``Template`` and registering it in ``REGISTRY``.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from .latex import latex_escape
 from .model import Manuscript
@@ -46,9 +46,9 @@ class Template:
     key: str = ""
     name: str = ""
     documentclass: str = ""
-    float_star: bool = False            # use figure*/table* (two-column layouts)
-    bundled_class: Optional[str] = None  # .cls filename to copy next to main.tex
-    notes: str = ""                      # shown in the UI / docs
+    float_star: bool = False        # use figure*/table* (two-column layouts)
+    bundle_classes: bool = True     # copy texclasses/<key>/* next to main.tex
+    notes: str = ""                 # shown in the UI / docs
 
     def packages(self) -> List[str]:
         return list(_COMMON_PACKAGES) + [r"\usepackage[hidelinks]{hyperref}"]
@@ -75,8 +75,7 @@ class IEEETemplate(Template):
     name = "IEEE (IEEEtran, conference)"
     documentclass = r"\documentclass[conference]{IEEEtran}"
     float_star = True
-    bundled_class = "IEEEtran.cls"
-    notes = "Bundled IEEEtran.cls ships with the output, so it compiles anywhere."
+    notes = "IEEEtran.cls is bundled into the output, so it compiles anywhere."
 
     def packages(self) -> List[str]:
         return [
@@ -125,7 +124,7 @@ class ACMTemplate(Template):
     name = "ACM (acmart, sigconf)"
     documentclass = r"\documentclass[sigconf]{acmart}"
     float_star = True
-    notes = "Requires the acmart class (TeX Live: texlive-publishers)."
+    notes = "acmart.cls + ACM-Reference-Format.bst are bundled into the output."
 
     def packages(self) -> List[str]:
         # acmart already loads graphicx, amsmath, hyperref, etc.
@@ -171,7 +170,7 @@ class LNCSTemplate(Template):
     name = "Springer LNCS (llncs)"
     documentclass = r"\documentclass{llncs}"
     float_star = False
-    notes = "Requires the llncs class (Springer LNCS bundle)."
+    notes = "llncs.cls + splncs04.bst are bundled into the output."
 
     def packages(self) -> List[str]:
         return list(_COMMON_PACKAGES) + [r"\usepackage{cite}", r"\usepackage[hidelinks]{hyperref}"]
@@ -203,7 +202,7 @@ class ElsevierTemplate(Template):
     name = "Elsevier (elsarticle, preprint)"
     documentclass = r"\documentclass[preprint,12pt]{elsarticle}"
     float_star = False
-    notes = "Requires the elsarticle class (TeX Live: texlive-publishers)."
+    notes = "elsarticle.cls + elsarticle-num.bst are bundled into the output."
 
     def packages(self) -> List[str]:
         return list(_COMMON_PACKAGES) + [r"\usepackage[hidelinks]{hyperref}"]

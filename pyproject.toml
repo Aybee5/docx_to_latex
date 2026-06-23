@@ -18,3 +18,5 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["docx2latex"]
+# Ship the bundled LaTeX class/bst files (.cls, .bst) alongside the code.
+artifacts = ["docx2latex/texclasses/**"]
