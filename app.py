@@ -51,6 +51,12 @@ compile_pdf = st.checkbox(
     help="Requires latexmk or pdflatex on this machine."
     + ("" if has_tex else " No LaTeX toolchain detected."),
 )
+if not has_tex:
+    st.caption(
+        "No LaTeX engine detected — download the project below and compile it on "
+        "[Overleaf](https://overleaf.com) (upload the .zip, set main.tex as the "
+        "main document)."
+    )
 
 if st.button("Convert", type="primary", disabled=uploaded is None):
     if uploaded is None:

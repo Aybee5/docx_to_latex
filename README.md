@@ -69,6 +69,28 @@ LaTeX engine — no separate publisher-class install:
 - **Overleaf:** upload the downloaded `.zip`, set `main.tex` as the main
   document, and compile. The bundled class files are picked up automatically.
 
+## Deploying to Streamlit Community Cloud
+
+The app runs on [Streamlit Community Cloud](https://streamlit.io/cloud) as-is.
+Point it at this repo with `app.py` as the entry point — `pyproject.toml` /
+`requirements.txt` supply the Python deps.
+
+**About "Compile to PDF" on the cloud:** PDF compilation needs an actual LaTeX
+engine. The PyPI [`pdflatex`](https://pypi.org/project/pdflatex/) package is only
+a Python wrapper around the *system* `pdflatex` binary (the same thing this app
+already calls via `subprocess`); it does **not** bundle TeX. So it can't make
+compilation work on a host that has no LaTeX installed.
+
+What actually enables it is the bundled [`packages.txt`](packages.txt): Streamlit
+Cloud installs those `apt` packages (a TeX Live subset + `latexmk`) at build
+time. With it present, the **Compile to PDF** checkbox becomes available in the
+deployed app. The trade-offs:
+
+- The TeX packages are large (~1–2 GB) and lengthen the build considerably.
+- If you don't want that, **delete `packages.txt`**: the app still works and
+  hands users the LaTeX `.zip` to compile on [Overleaf](https://overleaf.com).
+  The checkbox auto-disables when no LaTeX toolchain is detected.
+
 ## Library
 
 ```python
