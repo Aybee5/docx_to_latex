@@ -1,11 +1,3 @@
-# apt packages installed by Streamlit Community Cloud at build time.
-# These provide the TeX engine + classes so "Compile to PDF" works in the
-# deployed app. Without this file, the app still runs and offers the LaTeX
-# .zip for download (users compile on Overleaf), but PDF compile is disabled.
-#
-# This set is large (~1-2 GB) and noticeably lengthens the build. If you only
-# need the lighter formats (article/ieee/lncs/elsevier) you can drop
-# texlive-fonts-extra; acmart needs it (libertine / newtx fonts).
 latexmk
 texlive-latex-base
 texlive-latex-recommended
